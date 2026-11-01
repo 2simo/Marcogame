@@ -5,11 +5,11 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.graphics.Color;
 import android.view.View;
-import android.view.Gravity;
 import android.webkit.*;
 import android.widget.*;
 import android.content.Intent;
 import android.net.Uri;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class MainActivity extends Activity {
 
@@ -24,18 +24,15 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // أشرطة الهاتف ظاهرة باللون الأسود
         getWindow().setStatusBarColor(Color.BLACK);
         getWindow().setNavigationBarColor(Color.BLACK);
         getWindow().getDecorView().setSystemUiVisibility(0);
 
-        // الواجهة الرئيسية
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.BLACK);
         root.setFitsSystemWindows(true);
 
-        // شريط التقدم
         progress = new ProgressBar(
             this, null,
             android.R.attr.progressBarStyleHorizontal
@@ -49,14 +46,12 @@ public class MainActivity extends Activity {
         root.addView(progress,
             new LinearLayout.LayoutParams(-1, 4));
 
-        // السحب للتحديث
         refreshLayout = new SwipeRefreshLayout(this);
         refreshLayout.setColorSchemeColors(Color.RED);
         refreshLayout.setProgressBackgroundColorSchemeColor(
             Color.BLACK
         );
 
-        // WebView
         web = new WebView(this);
         web.setBackgroundColor(Color.WHITE);
 
@@ -135,7 +130,6 @@ public class MainActivity extends Activity {
             }
         });
 
-        // روابط التحميل
         web.setDownloadListener(
             (url, agent, disposition, mimetype, length) -> {
                 try {
@@ -155,9 +149,7 @@ public class MainActivity extends Activity {
 
         refreshLayout.addView(
             web,
-            new SwipeRefreshLayout.LayoutParams(
-                -1, -1
-            )
+            new SwipeRefreshLayout.LayoutParams(-1, -1)
         );
 
         refreshLayout.setOnRefreshListener(() -> {
