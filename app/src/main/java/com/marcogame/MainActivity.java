@@ -1,16 +1,15 @@
 
 package com.marcogame;
 
-import android.app.*;
-import android.os.*;
+import android.app.Activity;
+import android.os.Bundle;
 import android.graphics.Color;
-import android.view.*;
+import android.view.Gravity;
+import android.view.View;
 import android.webkit.*;
 import android.widget.*;
 import android.content.Intent;
 import android.net.Uri;
-import android.graphics.drawable.GradientDrawable;
-import android.content.Context;
 
 public class MainActivity extends Activity {
 
@@ -25,12 +24,14 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        getWindow().setStatusBarColor(Color.rgb(12,12,12));
+        // أشرطة الهاتف باللون الأسود مع إبقائها ظاهرة
+        getWindow().setStatusBarColor(Color.BLACK);
         getWindow().setNavigationBarColor(Color.BLACK);
+        getWindow().getDecorView().setSystemUiVisibility(0);
 
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.rgb(12,12,12));
+        root.setBackgroundColor(Color.BLACK);
 
         // شريط التقدم
         progress = new ProgressBar(
@@ -41,9 +42,9 @@ public class MainActivity extends Activity {
         progress.setProgressTintList(
             android.content.res.ColorStateList.valueOf(Color.RED)
         );
-        root.addView(progress, new LinearLayout.LayoutParams(
-            -1, 5
-        ));
+
+        root.addView(progress,
+            new LinearLayout.LayoutParams(-1, 5));
 
         // المتصفح
         web = new WebView(this);
@@ -131,16 +132,15 @@ public class MainActivity extends Activity {
             }
         });
 
-        root.addView(web, new LinearLayout.LayoutParams(
-            -1, 0, 1
-        ));
+        root.addView(web,
+            new LinearLayout.LayoutParams(-1, 0, 1));
 
-        // شريط الأزرار
+        // شريط الأزرار السفلي
         toolbar = new LinearLayout(this);
         toolbar.setOrientation(LinearLayout.HORIZONTAL);
         toolbar.setGravity(Gravity.CENTER);
-        toolbar.setBackgroundColor(Color.rgb(20,20,20));
-        toolbar.setPadding(5,8,5,8);
+        toolbar.setBackgroundColor(Color.rgb(20, 20, 20));
+        toolbar.setPadding(5, 8, 5, 8);
 
         addButton("❮", () -> {
             if (web.canGoBack()) {
@@ -156,9 +156,8 @@ public class MainActivity extends Activity {
 
         addButton("⌂", () -> web.loadUrl(homeUrl));
 
-        root.addView(toolbar, new LinearLayout.LayoutParams(
-            -1, 55
-        ));
+        root.addView(toolbar,
+            new LinearLayout.LayoutParams(-1, 55));
 
         setContentView(root);
 
@@ -173,9 +172,8 @@ public class MainActivity extends Activity {
         button.setGravity(Gravity.CENTER);
         button.setBackgroundColor(Color.TRANSPARENT);
 
-        toolbar.addView(button, new LinearLayout.LayoutParams(
-            0, -1, 1
-        ));
+        toolbar.addView(button,
+            new LinearLayout.LayoutParams(0, -1, 1));
 
         button.setOnClickListener(v -> action.run());
     }
