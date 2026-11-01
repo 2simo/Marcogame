@@ -4,8 +4,8 @@ package com.marcogame;
 import android.app.Activity;
 import android.os.Bundle;
 import android.graphics.Color;
-import android.view.Gravity;
 import android.view.View;
+import android.view.Gravity;
 import android.webkit.*;
 import android.widget.*;
 import android.content.Intent;
@@ -15,8 +15,7 @@ public class MainActivity extends Activity {
 
     private WebView web;
     private ProgressBar progress;
-    private LinearLayout root;
-    private LinearLayout toolbar;
+    private SwipeRefreshLayout refreshLayout;
 
     private final String homeUrl =
         "https://marcorx6.blogspot.com";
@@ -25,20 +24,18 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // إبقاء أشرطة الهاتف ظاهرة
+        // أشرطة الهاتف ظاهرة باللون الأسود
         getWindow().setStatusBarColor(Color.BLACK);
         getWindow().setNavigationBarColor(Color.BLACK);
         getWindow().getDecorView().setSystemUiVisibility(0);
 
         // الواجهة الرئيسية
-        root = new LinearLayout(this);
+        LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.BLACK);
-
-        // احترام المساحة المخصصة لشريط الحالة
         root.setFitsSystemWindows(true);
 
-        // شريط تقدم التحميل
+        // شريط التقدم
         progress = new ProgressBar(
             this, null,
             android.R.attr.progressBarStyleHorizontal
@@ -50,7 +47,14 @@ public class MainActivity extends Activity {
         );
 
         root.addView(progress,
-            new LinearLayout.LayoutParams(-1, 5));
+            new LinearLayout.LayoutParams(-1, 4));
+
+        // السحب للتحديث
+        refreshLayout = new SwipeRefreshLayout(this);
+        refreshLayout.setColorSchemeColors(Color.RED);
+        refreshLayout.setProgressBackgroundColorSchemeColor(
+            Color.BLACK
+        );
 
         // WebView
         web = new WebView(this);
@@ -71,6 +75,10 @@ public class MainActivity extends Activity {
                 progress.setVisibility(
                     value == 100 ? View.GONE : View.VISIBLE
                 );
+
+                if (value == 100) {
+                    refreshLayout.setRefreshing(false);
+                }
             }
         });
 
@@ -116,6 +124,8 @@ public class MainActivity extends Activity {
                 WebResourceError error) {
 
                 if (request.isForMainFrame()) {
+                    refreshLayout.setRefreshing(false);
+
                     Toast.makeText(
                         MainActivity.this,
                         "تحقق من اتصال الإنترنت",
@@ -143,53 +153,23 @@ public class MainActivity extends Activity {
             }
         );
 
-        root.addView(web,
-            new LinearLayout.LayoutParams(-1, 0, 1));
+        refreshLayout.addView(
+            web,
+            new SwipeRefreshLayout.LayoutParams(
+                -1, -1
+            )
+        );
 
-        // شريط الأزرار السفلي
-        toolbar = new LinearLayout(this);
-        toolbar.setOrientation(LinearLayout.HORIZONTAL);
-        toolbar.setGravity(Gravity.CENTER);
-        toolbar.setBackgroundColor(Color.rgb(20, 20, 20));
-        toolbar.setPadding(5, 8, 5, 8);
-
-        addButton("❮", () -> {
-            if (web.canGoBack()) {
-                web.goBack();
-            } else {
-                Toast.makeText(
-                    this,
-                    "لا توجد صفحة سابقة",
-                    Toast.LENGTH_SHORT
-                ).show();
-            }
+        refreshLayout.setOnRefreshListener(() -> {
+            web.reload();
         });
 
-        addButton("⟳", () -> web.reload());
-
-        addButton("⌂", () -> web.loadUrl(homeUrl));
-
-        root.addView(toolbar,
-            new LinearLayout.LayoutParams(-1, 55));
+        root.addView(refreshLayout,
+            new LinearLayout.LayoutParams(-1, 0, 1));
 
         setContentView(root);
 
         web.loadUrl(homeUrl);
-    }
-
-    private void addButton(String symbol, Runnable action) {
-        TextView button = new TextView(this);
-
-        button.setText(symbol);
-        button.setTextColor(Color.RED);
-        button.setTextSize(25);
-        button.setGravity(Gravity.CENTER);
-        button.setBackgroundColor(Color.TRANSPARENT);
-
-        toolbar.addView(button,
-            new LinearLayout.LayoutParams(0, -1, 1));
-
-        button.setOnClickListener(v -> action.run());
     }
 
     @Override
