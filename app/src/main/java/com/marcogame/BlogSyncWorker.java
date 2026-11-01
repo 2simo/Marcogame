@@ -48,16 +48,21 @@ public class BlogSyncWorker extends Worker {
                         PREFS, Context.MODE_PRIVATE
                 );
 
-        if (prefs.getBoolean(KEY_DONE, false)) {
-            return Result.success();
-        }
+        boolean archiveDone =
+                prefs.getBoolean(KEY_DONE, false);
 
-        int startIndex = prefs.getInt(KEY_INDEX, 1);
+        // إذا انتهى الأرشيف، نفحص أحدث التدوينات فقط
+        int startIndex = archiveDone
+                ? 1
+                : prefs.getInt(KEY_INDEX, 1);
 
         ImageDownloadManager imageManager =
                 new ImageDownloadManager(context);
 
-        for (int page = 0; page < PAGES_PER_RUN; page++) {
+        int pagesToDownload =
+                archiveDone ? 1 : PAGES_PER_RUN;
+
+        for (int page = 0; page < pagesToDownload; page++) {
 
             if (isStopped()) {
                 return Result.retry();
@@ -125,7 +130,6 @@ public class BlogSyncWorker extends Worker {
 
                     if (!guid.isEmpty()) {
 
-                        // تحميل الصور وتبديل روابطها بروابط محلية
                         content =
                                 imageManager.downloadAndReplaceImages(
                                         content
@@ -147,9 +151,12 @@ public class BlogSyncWorker extends Worker {
                 }
 
                 if (posts.isEmpty()) {
-                    prefs.edit()
-                            .putBoolean(KEY_DONE, true)
-                            .apply();
+
+                    if (!archiveDone) {
+                        prefs.edit()
+                                .putBoolean(KEY_DONE, true)
+                                .apply();
+                    }
 
                     return Result.success();
                 }
@@ -158,18 +165,23 @@ public class BlogSyncWorker extends Worker {
                         .postDao()
                         .insertAll(posts);
 
-                startIndex += posts.size();
+                // تحديث مؤشر الأرشيف فقط أثناء التحميل الأول
+                if (!archiveDone) {
 
-                prefs.edit()
-                        .putInt(KEY_INDEX, startIndex)
-                        .apply();
+                    startIndex += posts.size();
 
-                if (posts.size() < PAGE_SIZE) {
                     prefs.edit()
-                            .putBoolean(KEY_DONE, true)
+                            .putInt(KEY_INDEX, startIndex)
                             .apply();
 
-                    return Result.success();
+                    if (posts.size() < PAGE_SIZE) {
+
+                        prefs.edit()
+                                .putBoolean(KEY_DONE, true)
+                                .apply();
+
+                        return Result.success();
+                    }
                 }
 
             } catch (Exception e) {
@@ -184,17 +196,21 @@ public class BlogSyncWorker extends Worker {
             }
         }
 
-        OneTimeWorkRequest nextBatch =
-                new OneTimeWorkRequest.Builder(
-                        BlogSyncWorker.class
-                ).build();
+        // متابعة الأرشيف القديم فقط
+        if (!archiveDone) {
 
-        WorkManager.getInstance(context)
-                .enqueueUniqueWork(
-                        "MARCO_RX6_ARCHIVE_SYNC",
-                        ExistingWorkPolicy.APPEND_OR_REPLACE,
-                        nextBatch
-                );
+            OneTimeWorkRequest nextBatch =
+                    new OneTimeWorkRequest.Builder(
+                            BlogSyncWorker.class
+                    ).build();
+
+            WorkManager.getInstance(context)
+                    .enqueueUniqueWork(
+                            "MARCO_RX6_ARCHIVE_SYNC",
+                            ExistingWorkPolicy.APPEND_OR_REPLACE,
+                            nextBatch
+                    );
+        }
 
         return Result.success();
     }
