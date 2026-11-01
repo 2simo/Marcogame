@@ -13,8 +13,15 @@ import android.webkit.*;
 import android.widget.*;
 import android.content.Intent;
 import android.net.Uri;
+import android.Manifest;
+import android.content.pm.PackageManager;
 
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.ExistingPeriodicWorkPolicy;
+
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity {
 
@@ -197,7 +204,40 @@ public class MainActivity extends Activity {
 
         setContentView(root);
 
+        startPostNotifications();
+
         web.loadUrl(homeUrl);
+    }
+
+    // تشغيل مراقبة التدوينات الجديدة
+    private void startPostNotifications() {
+
+        PeriodicWorkRequest request =
+            new PeriodicWorkRequest.Builder(
+                NewPostWorker.class,
+                15,
+                TimeUnit.MINUTES
+            ).build();
+
+        WorkManager.getInstance(this)
+            .enqueueUniquePeriodicWork(
+                "MARCO_RX6_NEW_POSTS",
+                ExistingPeriodicWorkPolicy.KEEP,
+                request
+            );
+
+        if (android.os.Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED) {
+
+            requestPermissions(
+                new String[]{
+                    Manifest.permission.POST_NOTIFICATIONS
+                },
+                101
+            );
+        }
     }
 
     private GradientDrawable roundedBackground(
@@ -231,7 +271,6 @@ public class MainActivity extends Activity {
         splashScreen.setOrientation(LinearLayout.VERTICAL);
         splashScreen.setBackgroundColor(BLACK);
 
-        // الشريط العلوي مثل المدونة
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
@@ -266,7 +305,6 @@ public class MainActivity extends Activity {
 
         splashScreen.addView(header);
 
-        // خط فاصل بنفسجي
         View divider = new View(this);
         divider.setBackgroundColor(
             Color.rgb(125, 75, 160)
@@ -275,7 +313,6 @@ public class MainActivity extends Activity {
         splashScreen.addView(divider,
             new LinearLayout.LayoutParams(-1, 2));
 
-        // محتوى الشاشة
         LinearLayout content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
         content.setPadding(18, 25, 18, 18);
@@ -298,7 +335,6 @@ public class MainActivity extends Activity {
         descParams.topMargin = 7;
         content.addView(description, descParams);
 
-        // بطاقات تشبه منشورات المدونة
         addPostCard(content, "MARCO RX6", "اكتشف جديد المدونة");
         addPostCard(content, "LATEST POSTS", "آخر الأخبار والمنشورات");
         addPostCard(content, "EXPLORE", "المزيد من المحتوى في انتظارك");
@@ -306,7 +342,6 @@ public class MainActivity extends Activity {
         splashScreen.addView(content,
             new LinearLayout.LayoutParams(-1, 0, 1));
 
-        // أسفل الشاشة
         LinearLayout bottom = new LinearLayout(this);
         bottom.setOrientation(LinearLayout.VERTICAL);
         bottom.setGravity(Gravity.CENTER);
