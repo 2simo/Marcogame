@@ -13,31 +13,37 @@ import android.net.Uri;
 
 public class MainActivity extends Activity {
 
-    WebView web;
-    ProgressBar progress;
-    LinearLayout root;
-    LinearLayout toolbar;
+    private WebView web;
+    private ProgressBar progress;
+    private LinearLayout root;
+    private LinearLayout toolbar;
 
-    String homeUrl = "https://marcorx6.blogspot.com";
+    private final String homeUrl =
+        "https://marcorx6.blogspot.com";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // أشرطة الهاتف باللون الأسود مع إبقائها ظاهرة
+        // إبقاء أشرطة الهاتف ظاهرة
         getWindow().setStatusBarColor(Color.BLACK);
         getWindow().setNavigationBarColor(Color.BLACK);
         getWindow().getDecorView().setSystemUiVisibility(0);
 
+        // الواجهة الرئيسية
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.BLACK);
 
-        // شريط التقدم
+        // احترام المساحة المخصصة لشريط الحالة
+        root.setFitsSystemWindows(true);
+
+        // شريط تقدم التحميل
         progress = new ProgressBar(
             this, null,
             android.R.attr.progressBarStyleHorizontal
         );
+
         progress.setMax(100);
         progress.setProgressTintList(
             android.content.res.ColorStateList.valueOf(Color.RED)
@@ -46,9 +52,9 @@ public class MainActivity extends Activity {
         root.addView(progress,
             new LinearLayout.LayoutParams(-1, 5));
 
-        // المتصفح
+        // WebView
         web = new WebView(this);
-        web.setBackgroundColor(Color.BLACK);
+        web.setBackgroundColor(Color.WHITE);
 
         web.getSettings().setJavaScriptEnabled(true);
         web.getSettings().setDomStorageEnabled(true);
@@ -57,8 +63,11 @@ public class MainActivity extends Activity {
 
         web.setWebChromeClient(new WebChromeClient() {
             @Override
-            public void onProgressChanged(WebView view, int value) {
+            public void onProgressChanged(
+                WebView view, int value) {
+
                 progress.setProgress(value);
+
                 progress.setVisibility(
                     value == 100 ? View.GONE : View.VISIBLE
                 );
@@ -70,8 +79,8 @@ public class MainActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(
                 WebView view,
-                WebResourceRequest request
-            ) {
+                WebResourceRequest request) {
+
                 Uri uri = request.getUrl();
                 String host = uri.getHost();
 
@@ -104,8 +113,8 @@ public class MainActivity extends Activity {
             public void onReceivedError(
                 WebView view,
                 WebResourceRequest request,
-                WebResourceError error
-            ) {
+                WebResourceError error) {
+
                 if (request.isForMainFrame()) {
                     Toast.makeText(
                         MainActivity.this,
@@ -117,20 +126,22 @@ public class MainActivity extends Activity {
         });
 
         // روابط التحميل
-        web.setDownloadListener((url, agent, disposition,
-                mimetype, length) -> {
-            try {
-                startActivity(new Intent(
-                    Intent.ACTION_VIEW, Uri.parse(url)
-                ));
-            } catch (Exception e) {
-                Toast.makeText(
-                    MainActivity.this,
-                    "تعذر فتح رابط التحميل",
-                    Toast.LENGTH_SHORT
-                ).show();
+        web.setDownloadListener(
+            (url, agent, disposition, mimetype, length) -> {
+                try {
+                    startActivity(new Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(url)
+                    ));
+                } catch (Exception e) {
+                    Toast.makeText(
+                        MainActivity.this,
+                        "تعذر فتح رابط التحميل",
+                        Toast.LENGTH_SHORT
+                    ).show();
+                }
             }
-        });
+        );
 
         root.addView(web,
             new LinearLayout.LayoutParams(-1, 0, 1));
@@ -146,9 +157,11 @@ public class MainActivity extends Activity {
             if (web.canGoBack()) {
                 web.goBack();
             } else {
-                Toast.makeText(this,
+                Toast.makeText(
+                    this,
                     "لا توجد صفحة سابقة",
-                    Toast.LENGTH_SHORT).show();
+                    Toast.LENGTH_SHORT
+                ).show();
             }
         });
 
@@ -164,9 +177,10 @@ public class MainActivity extends Activity {
         web.loadUrl(homeUrl);
     }
 
-    private void addButton(String text, Runnable action) {
+    private void addButton(String symbol, Runnable action) {
         TextView button = new TextView(this);
-        button.setText(text);
+
+        button.setText(symbol);
         button.setTextColor(Color.RED);
         button.setTextSize(25);
         button.setGravity(Gravity.CENTER);
