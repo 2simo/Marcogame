@@ -4,11 +4,18 @@ package com.marcogame;
 import android.app.Activity;
 import android.os.Bundle;
 import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.view.View;
+import android.view.Gravity;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
 import android.webkit.*;
 import android.widget.*;
 import android.content.Intent;
 import android.net.Uri;
+
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class MainActivity extends Activity {
@@ -16,9 +23,17 @@ public class MainActivity extends Activity {
     private WebView web;
     private ProgressBar progress;
     private SwipeRefreshLayout refreshLayout;
+    private FrameLayout mainFrame;
+    private LinearLayout splashScreen;
+
+    private boolean splashHidden = false;
 
     private final String homeUrl =
         "https://marcorx6.blogspot.com";
+
+    private final int BLACK = Color.rgb(10, 8, 14);
+    private final int PURPLE = Color.rgb(65, 35, 95);
+    private final int WHITE = Color.WHITE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,28 +45,38 @@ public class MainActivity extends Activity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.BLACK);
+        root.setBackgroundColor(BLACK);
         root.setFitsSystemWindows(true);
 
+        // شريط التقدم البنفسجي
         progress = new ProgressBar(
-            this, null,
+            this,
+            null,
             android.R.attr.progressBarStyleHorizontal
         );
 
         progress.setMax(100);
         progress.setProgressTintList(
-            android.content.res.ColorStateList.valueOf(Color.RED)
+            android.content.res.ColorStateList.valueOf(
+                Color.rgb(145, 75, 210)
+            )
         );
 
-        root.addView(progress,
-            new LinearLayout.LayoutParams(-1, 4));
+        root.addView(
+            progress,
+            new LinearLayout.LayoutParams(-1, 4)
+        );
+
+        // إطار المحتوى
+        mainFrame = new FrameLayout(this);
 
         refreshLayout = new SwipeRefreshLayout(this);
-        refreshLayout.setColorSchemeColors(Color.RED);
-        refreshLayout.setProgressBackgroundColorSchemeColor(
-            Color.BLACK
+        refreshLayout.setColorSchemeColors(
+            Color.rgb(160, 90, 220)
         );
+        refreshLayout.setProgressBackgroundColorSchemeColor(BLACK);
 
+        // إعداد WebView
         web = new WebView(this);
         web.setBackgroundColor(Color.WHITE);
 
@@ -106,10 +131,17 @@ public class MainActivity extends Activity {
                             Toast.LENGTH_SHORT
                         ).show();
                     }
-                    return true;
                 }
 
                 return true;
+            }
+
+            @Override
+            public void onPageFinished(
+                WebView view, String url) {
+
+                refreshLayout.setRefreshing(false);
+                hideSplash();
             }
 
             @Override
@@ -120,6 +152,7 @@ public class MainActivity extends Activity {
 
                 if (request.isForMainFrame()) {
                     refreshLayout.setRefreshing(false);
+                    hideSplash();
 
                     Toast.makeText(
                         MainActivity.this,
@@ -130,6 +163,7 @@ public class MainActivity extends Activity {
             }
         });
 
+        // التعامل مع روابط التحميل
         web.setDownloadListener(
             (url, agent, disposition, mimetype, length) -> {
                 try {
@@ -156,20 +190,146 @@ public class MainActivity extends Activity {
             web.reload();
         });
 
-        root.addView(refreshLayout,
-            new LinearLayout.LayoutParams(-1, 0, 1));
+        mainFrame.addView(
+            refreshLayout,
+            new FrameLayout.LayoutParams(-1, -1)
+        );
+
+        // شاشة الافتتاح
+        createSplashScreen();
+
+        mainFrame.addView(
+            splashScreen,
+            new FrameLayout.LayoutParams(-1, -1)
+        );
+
+        root.addView(
+            mainFrame,
+            new LinearLayout.LayoutParams(-1, 0, 1)
+        );
 
         setContentView(root);
 
+        // فتح المدونة
         web.loadUrl(homeUrl);
+    }
+
+    private void createSplashScreen() {
+
+        splashScreen = new LinearLayout(this);
+        splashScreen.setOrientation(LinearLayout.VERTICAL);
+        splashScreen.setGravity(Gravity.CENTER);
+        splashScreen.setPadding(30, 30, 30, 30);
+
+        GradientDrawable background = new GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            new int[] {
+                Color.rgb(8, 7, 12),
+                Color.rgb(32, 17, 48),
+                Color.rgb(10, 8, 14)
+            }
+        );
+
+        splashScreen.setBackground(background);
+
+        // شعار التطبيق
+        ImageView logo = new ImageView(this);
+
+        logo.setImageResource(R.mipmap.ic_launcher);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+        LinearLayout.LayoutParams logoParams =
+            new LinearLayout.LayoutParams(190, 190);
+
+        logoParams.gravity = Gravity.CENTER;
+        logoParams.bottomMargin = 22;
+
+        splashScreen.addView(logo, logoParams);
+
+        // اسم التطبيق
+        TextView title = new TextView(this);
+
+        title.setText("MARCO RX6");
+        title.setTextColor(WHITE);
+        title.setTextSize(30);
+        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        title.setGravity(Gravity.CENTER);
+
+        splashScreen.addView(
+            title,
+            new LinearLayout.LayoutParams(-1, -2)
+        );
+
+        // وصف صغير
+        TextView subtitle = new TextView(this);
+
+        subtitle.setText("WELCOME TO MARCO RX6");
+        subtitle.setTextColor(
+            Color.rgb(185, 145, 220)
+        );
+        subtitle.setTextSize(12);
+        subtitle.setGravity(Gravity.CENTER);
+
+        LinearLayout.LayoutParams subtitleParams =
+            new LinearLayout.LayoutParams(-1, -2);
+
+        subtitleParams.topMargin = 10;
+
+        splashScreen.addView(subtitle, subtitleParams);
+
+        // مؤشر التحميل
+        ProgressBar loading = new ProgressBar(this);
+
+        loading.setIndeterminate(true);
+        loading.setIndeterminateTintList(
+            android.content.res.ColorStateList.valueOf(
+                Color.rgb(155, 90, 210)
+            )
+        );
+
+        LinearLayout.LayoutParams loadingParams =
+            new LinearLayout.LayoutParams(45, 45);
+
+        loadingParams.gravity = Gravity.CENTER;
+        loadingParams.topMargin = 35;
+
+        splashScreen.addView(loading, loadingParams);
+    }
+
+    // إخفاء الشاشة عند جاهزية المدونة
+    private void hideSplash() {
+
+        if (splashHidden || splashScreen == null) {
+            return;
+        }
+
+        splashHidden = true;
+
+        AlphaAnimation animation =
+            new AlphaAnimation(1.0f, 0.0f);
+
+        animation.setDuration(350);
+        animation.setFillAfter(false);
+
+        splashScreen.startAnimation(animation);
+        splashScreen.setVisibility(View.GONE);
     }
 
     @Override
     public void onBackPressed() {
+
         if (web != null && web.canGoBack()) {
             web.goBack();
         } else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (web != null) {
+            web.destroy();
+        }
+        super.onDestroy();
     }
 }
