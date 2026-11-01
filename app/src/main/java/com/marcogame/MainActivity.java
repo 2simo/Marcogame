@@ -93,8 +93,6 @@ public class MainActivity extends Activity {
         settings.setDomStorageEnabled(true);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
-
-        // استعمال كاش WebView الافتراضي
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
         web.setWebChromeClient(new WebChromeClient() {
@@ -429,170 +427,190 @@ public class MainActivity extends Activity {
         return shape;
     }
 
-    private TextView makeText(
-            String value, int size, int color, boolean bold) {
-
-        TextView text = new TextView(this);
-        text.setText(value);
-        text.setTextSize(size);
-        text.setTextColor(color);
-        text.setGravity(Gravity.CENTER_VERTICAL);
-
-        if (bold) {
-            text.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        }
-
-        return text;
-    }
-
+    // Splash Screen السينمائي
     private void createSplashScreen() {
 
         splashScreen = new LinearLayout(this);
         splashScreen.setOrientation(LinearLayout.VERTICAL);
-        splashScreen.setBackgroundColor(BLACK);
+        splashScreen.setGravity(Gravity.CENTER);
+        splashScreen.setPadding(20, 30, 20, 30);
 
-        LinearLayout header = new LinearLayout(this);
-        header.setOrientation(LinearLayout.HORIZONTAL);
-        header.setGravity(Gravity.CENTER_VERTICAL);
-        header.setPadding(18, 14, 18, 14);
-        header.setBackgroundColor(PURPLE);
-
-        ImageView logo = new ImageView(this);
-        logo.setImageResource(R.mipmap.ic_launcher);
-        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-
-        header.addView(logo,
-                new LinearLayout.LayoutParams(48, 48));
-
-        LinearLayout brand = new LinearLayout(this);
-        brand.setOrientation(LinearLayout.VERTICAL);
-        brand.setPadding(12, 0, 0, 0);
-
-        TextView title = makeText(
-                "MARCO RX6", 21, WHITE, true
+        GradientDrawable background = new GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                new int[]{
+                        Color.rgb(3, 3, 5),
+                        Color.rgb(24, 12, 34),
+                        Color.rgb(5, 5, 8)
+                }
         );
 
-        TextView subtitle = makeText(
-                "OFFICIAL BLOG", 10,
-                Color.rgb(215, 195, 230), false
+        splashScreen.setBackground(background);
+
+        FrameLayout scene = new FrameLayout(this);
+
+        // دخان سينمائي متحرك
+        for (int i = 0; i < 7; i++) {
+
+            View smoke = new View(this);
+
+            GradientDrawable cloud = new GradientDrawable();
+            cloud.setShape(GradientDrawable.OVAL);
+            cloud.setColor(Color.rgb(105, 105, 115));
+
+            smoke.setBackground(cloud);
+            smoke.setAlpha(0.10f);
+
+            FrameLayout.LayoutParams smokeParams =
+                    new FrameLayout.LayoutParams(
+                            130 + (i % 3) * 35,
+                            65 + (i % 2) * 25
+                    );
+
+            smokeParams.gravity = Gravity.CENTER;
+            smokeParams.leftMargin =
+                    (i % 2 == 0 ? -65 : 65);
+            smokeParams.topMargin = (i - 3) * 38;
+
+            scene.addView(smoke, smokeParams);
+
+            AlphaAnimation smokeAnimation =
+                    new AlphaAnimation(0.04f, 0.20f);
+
+            smokeAnimation.setDuration(2200 + i * 250);
+            smokeAnimation.setRepeatMode(
+                    AlphaAnimation.REVERSE
+            );
+            smokeAnimation.setRepeatCount(
+                    AlphaAnimation.INFINITE
+            );
+
+            smoke.startAnimation(smokeAnimation);
+        }
+
+        // شعار الذئب
+        ImageView wolf = new ImageView(this);
+        wolf.setImageResource(R.mipmap.ic_launcher);
+        wolf.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+        FrameLayout.LayoutParams wolfParams =
+                new FrameLayout.LayoutParams(210, 210);
+
+        wolfParams.gravity = Gravity.CENTER;
+        wolfParams.topMargin = -65;
+
+        scene.addView(wolf, wolfParams);
+
+        AlphaAnimation wolfAnimation =
+                new AlphaAnimation(0.65f, 1f);
+
+        wolfAnimation.setDuration(1800);
+        wolfAnimation.setRepeatMode(
+                AlphaAnimation.REVERSE
+        );
+        wolfAnimation.setRepeatCount(
+                AlphaAnimation.INFINITE
         );
 
-        brand.addView(title);
-        brand.addView(subtitle);
+        wolf.startAnimation(wolfAnimation);
 
-        header.addView(brand,
-                new LinearLayout.LayoutParams(0, -2, 1));
-
-        splashScreen.addView(header);
-
-        View divider = new View(this);
-        divider.setBackgroundColor(
-                Color.rgb(125, 75, 160)
+        splashScreen.addView(
+                scene,
+                new LinearLayout.LayoutParams(-1, 0, 1)
         );
 
-        splashScreen.addView(divider,
-                new LinearLayout.LayoutParams(-1, 2));
-
-        LinearLayout content = new LinearLayout(this);
-        content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(18, 25, 18, 18);
-
-        TextView heading = makeText(
-                "مرحبا بك في MARCO RX6",
-                20, WHITE, true
+        // اسم التطبيق
+        TextView title = new TextView(this);
+        title.setText("MARCO RX6");
+        title.setTextColor(Color.WHITE);
+        title.setTextSize(30);
+        title.setTypeface(
+                Typeface.DEFAULT,
+                Typeface.BOLD
         );
+        title.setGravity(Gravity.CENTER);
+        title.setLetterSpacing(0.12f);
 
-        content.addView(heading);
+        splashScreen.addView(title);
 
-        TextView description = makeText(
-                "اكتشف آخر المنشورات والمحتويات",
-                13, Color.LTGRAY, false
+        // خط بنفسجي
+        View line = new View(this);
+
+        GradientDrawable lineBackground =
+                new GradientDrawable();
+
+        lineBackground.setColor(
+                Color.rgb(145, 65, 190)
         );
+        lineBackground.setCornerRadius(5);
 
-        LinearLayout.LayoutParams descParams =
-                new LinearLayout.LayoutParams(-1, -2);
+        line.setBackground(lineBackground);
 
-        descParams.topMargin = 7;
-        content.addView(description, descParams);
+        LinearLayout.LayoutParams lineParams =
+                new LinearLayout.LayoutParams(115, 3);
 
-        addPostCard(content, "MARCO RX6", "اكتشف جديد المدونة");
-        addPostCard(content, "LATEST POSTS", "آخر الأخبار والمنشورات");
-        addPostCard(content, "EXPLORE", "المزيد من المحتوى في انتظارك");
+        lineParams.topMargin = 15;
+        lineParams.bottomMargin = 18;
 
-        splashScreen.addView(content,
-                new LinearLayout.LayoutParams(-1, 0, 1));
+        splashScreen.addView(line, lineParams);
 
-        LinearLayout bottom = new LinearLayout(this);
-        bottom.setOrientation(LinearLayout.VERTICAL);
-        bottom.setGravity(Gravity.CENTER);
-        bottom.setPadding(15, 15, 15, 25);
+        // عبارة الترحيب
+        TextView subtitle = new TextView(this);
 
+        subtitle.setText("WELCOME TO THE WOLF SIDE");
+        subtitle.setTextColor(
+                Color.rgb(190, 175, 205)
+        );
+        subtitle.setTextSize(11);
+        subtitle.setGravity(Gravity.CENTER);
+        subtitle.setLetterSpacing(0.16f);
+
+        splashScreen.addView(subtitle);
+
+        // مؤشر التحميل
         ProgressBar loading = new ProgressBar(this);
         loading.setIndeterminate(true);
+
         loading.setIndeterminateTintList(
                 android.content.res.ColorStateList.valueOf(
-                        Color.rgb(175, 115, 215)
+                        Color.rgb(175, 90, 220)
                 )
         );
 
-        bottom.addView(loading,
-                new LinearLayout.LayoutParams(38, 38));
+        LinearLayout.LayoutParams loadingParams =
+                new LinearLayout.LayoutParams(35, 35);
 
-        TextView loadingText = makeText(
-                "جاري تحميل المدونة...",
-                12, Color.rgb(205, 180, 225), false
+        loadingParams.topMargin = 35;
+
+        splashScreen.addView(
+                loading,
+                loadingParams
         );
 
+        TextView loadingText = new TextView(this);
+
+        loadingText.setText(
+                "جاري تحضير عالم MARCO RX6..."
+        );
+
+        loadingText.setTextColor(
+                Color.rgb(180, 165, 195)
+        );
+
+        loadingText.setTextSize(12);
         loadingText.setGravity(Gravity.CENTER);
 
         LinearLayout.LayoutParams textParams =
                 new LinearLayout.LayoutParams(-1, -2);
 
-        textParams.topMargin = 10;
-        bottom.addView(loadingText, textParams);
+        textParams.topMargin = 12;
 
-        splashScreen.addView(bottom);
+        splashScreen.addView(
+                loadingText,
+                textParams
+        );
     }
 
-    private void addPostCard(
-            LinearLayout parent,
-            String heading,
-            String description) {
-
-        LinearLayout card = new LinearLayout(this);
-        card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(15, 13, 15, 13);
-        card.setBackground(
-                roundedBackground(
-                        Color.rgb(29, 23, 35), 14
-                )
-        );
-
-        TextView title = makeText(
-                heading, 15, WHITE, true
-        );
-
-        TextView detail = makeText(
-                description, 12,
-                Color.rgb(195, 180, 205), false
-        );
-
-        card.addView(title);
-
-        LinearLayout.LayoutParams detailParams =
-                new LinearLayout.LayoutParams(-1, -2);
-
-        detailParams.topMargin = 5;
-        card.addView(detail, detailParams);
-
-        LinearLayout.LayoutParams cardParams =
-                new LinearLayout.LayoutParams(-1, -2);
-
-        cardParams.topMargin = 15;
-
-        parent.addView(card, cardParams);
-    }
-
+    // إخفاء شاشة البداية
     private void hideSplash() {
 
         if (splashHidden || splashScreen == null) {
@@ -604,7 +622,7 @@ public class MainActivity extends Activity {
         AlphaAnimation animation =
                 new AlphaAnimation(1.0f, 0.0f);
 
-        animation.setDuration(300);
+        animation.setDuration(500);
         animation.setFillAfter(false);
 
         splashScreen.startAnimation(animation);
