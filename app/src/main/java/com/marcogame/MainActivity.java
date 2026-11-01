@@ -45,7 +45,6 @@ public class MainActivity extends Activity {
             "https://marcorx6.blogspot.com";
 
     private final int BLACK = Color.rgb(10, 9, 13);
-    private final int PURPLE = Color.rgb(48, 29, 66);
     private final int WHITE = Color.WHITE;
 
     @Override
@@ -418,15 +417,6 @@ public class MainActivity extends Activity {
                 .replace("'", "&#39;");
     }
 
-    private GradientDrawable roundedBackground(
-            int color, int radius) {
-
-        GradientDrawable shape = new GradientDrawable();
-        shape.setColor(color);
-        shape.setCornerRadius(radius);
-        return shape;
-    }
-
     // Splash Screen السينمائي
     private void createSplashScreen() {
 
@@ -532,7 +522,7 @@ public class MainActivity extends Activity {
 
         splashScreen.addView(title);
 
-        // خط بنفسجي
+        // الخط البنفسجي
         View line = new View(this);
 
         GradientDrawable lineBackground =
