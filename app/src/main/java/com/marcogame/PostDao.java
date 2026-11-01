@@ -1,26 +1,28 @@
 
 package com.marcogame;
 
-import androidx.room.Entity;
-import androidx.room.PrimaryKey;
+import androidx.room.Dao;
+import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
+import androidx.room.Query;
 
-@Entity(tableName = "posts")
-public class Post {
+import java.util.List;
 
-    @PrimaryKey
-    public String id;
+@Dao
+public interface PostDao {
 
-    public String title;
-    public String link;
-    public String contentHtml;
-    public String published;
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insert(Post post);
 
-    public Post(String id, String title, String link,
-                String contentHtml, String published) {
-        this.id = id;
-        this.title = title;
-        this.link = link;
-        this.contentHtml = contentHtml;
-        this.published = published;
-    }
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertAll(List<Post> posts);
+
+    @Query("SELECT * FROM posts ORDER BY published DESC")
+    List<Post> getAllPosts();
+
+    @Query("SELECT * FROM posts WHERE id = :postId LIMIT 1")
+    Post getPost(String postId);
+
+    @Query("SELECT COUNT(*) FROM posts")
+    int getPostCount();
 }
