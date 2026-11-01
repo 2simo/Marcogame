@@ -1,4 +1,3 @@
-
 package com.marcogame;
 
 import androidx.room.Dao;
@@ -25,4 +24,7 @@ public interface PostDao {
 
     @Query("SELECT COUNT(*) FROM posts")
     int getPostCount();
+
+    @Query("UPDATE posts SET contentHtml = :newContent WHERE id = :postId")
+    void updateContentHtml(String postId, String newContent);
 }
