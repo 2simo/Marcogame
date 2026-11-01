@@ -1,4 +1,3 @@
-
 package com.marcogame;
 
 import android.content.Context;
@@ -45,13 +44,18 @@ public class BlogSyncWorker extends Worker {
         Context context = getApplicationContext();
 
         SharedPreferences prefs =
-                context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+                context.getSharedPreferences(
+                        PREFS, Context.MODE_PRIVATE
+                );
 
         if (prefs.getBoolean(KEY_DONE, false)) {
             return Result.success();
         }
 
         int startIndex = prefs.getInt(KEY_INDEX, 1);
+
+        ImageDownloadManager imageManager =
+                new ImageDownloadManager(context);
 
         for (int page = 0; page < PAGES_PER_RUN; page++) {
 
@@ -103,6 +107,10 @@ public class BlogSyncWorker extends Worker {
 
                 for (int i = 0; i < items.getLength(); i++) {
 
+                    if (isStopped()) {
+                        return Result.retry();
+                    }
+
                     Element item = (Element) items.item(i);
 
                     String title = getText(item, "title");
@@ -116,6 +124,13 @@ public class BlogSyncWorker extends Worker {
                     }
 
                     if (!guid.isEmpty()) {
+
+                        // تحميل الصور وتبديل روابطها بروابط محلية
+                        content =
+                                imageManager.downloadAndReplaceImages(
+                                        content
+                                );
+
                         posts.add(new Post(
                                 guid,
                                 title,
@@ -169,7 +184,6 @@ public class BlogSyncWorker extends Worker {
             }
         }
 
-        // جدولة الدفعة الموالية تلقائياً
         OneTimeWorkRequest nextBatch =
                 new OneTimeWorkRequest.Builder(
                         BlogSyncWorker.class
