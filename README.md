@@ -37,7 +37,7 @@ Download the latest APK from the "Releases" (../../releases) section.
 
 👨‍💻 Developer
 
-MARCO RX6
+XPANGWAN
 
 ---
 
