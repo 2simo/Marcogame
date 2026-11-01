@@ -7,6 +7,8 @@ import android.graphics.Color;
 import android.view.*;
 import android.webkit.*;
 import android.widget.*;
+import android.content.Intent;
+import android.net.Uri;
 
 public class MainActivity extends Activity {
 
@@ -40,8 +42,59 @@ public class MainActivity extends Activity {
         web.getSettings().setJavaScriptEnabled(true);
         web.getSettings().setDomStorageEnabled(true);
 
-        // فتح الروابط داخل التطبيق
-        web.setWebViewClient(new WebViewClient());
+        // إبقاء المدونة داخل التطبيق
+        web.setWebViewClient(new WebViewClient() {
+
+            @Override
+            public boolean shouldOverrideUrlLoading(
+                WebView view,
+                WebResourceRequest request
+            ) {
+                Uri uri = request.getUrl();
+                String host = uri.getHost();
+
+                // روابط المدونة تفتح داخل التطبيق
+                if (host != null &&
+                    (host.equals("marcorx6.blogspot.com") ||
+                     host.equals("www.marcorx6.blogspot.com"))) {
+                    return false;
+                }
+
+                // الروابط الخارجية تفتح خارج التطبيق
+                if ("http".equals(uri.getScheme()) ||
+                    "https".equals(uri.getScheme())) {
+
+                    Intent intent = new Intent(
+                        Intent.ACTION_VIEW, uri
+                    );
+
+                    startActivity(intent);
+                    return true;
+                }
+
+                return false;
+            }
+        });
+
+        // روابط التحميل تفتح خارج التطبيق
+        web.setDownloadListener((url, userAgent,
+                contentDisposition, mimetype, contentLength) -> {
+
+            try {
+                Intent intent = new Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse(url)
+                );
+                startActivity(intent);
+
+            } catch (Exception e) {
+                Toast.makeText(
+                    MainActivity.this,
+                    "تعذر فتح رابط التحميل",
+                    Toast.LENGTH_SHORT
+                ).show();
+            }
+        });
 
         web.loadUrl("https://marcorx6.blogspot.com");
 
