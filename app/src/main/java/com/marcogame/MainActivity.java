@@ -87,10 +87,15 @@ public class MainActivity extends Activity {
         web = new WebView(this);
         web.setBackgroundColor(WHITE);
 
-        web.getSettings().setJavaScriptEnabled(true);
-        web.getSettings().setDomStorageEnabled(true);
-        web.getSettings().setLoadWithOverviewMode(true);
-        web.getSettings().setUseWideViewPort(true);
+        WebSettings settings = web.getSettings();
+
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setLoadWithOverviewMode(true);
+        settings.setUseWideViewPort(true);
+
+        // استعمال كاش WebView الافتراضي
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
         web.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -115,7 +120,6 @@ public class MainActivity extends Activity {
 
                 Uri uri = request.getUrl();
 
-                // فتح تدوينة محفوظة محلياً
                 if ("marco-post".equals(uri.getScheme())) {
                     String id = uri.getHost();
 
