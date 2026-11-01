@@ -1,3 +1,4 @@
+
 package com.marcogame;
 
 import android.app.*;
@@ -35,8 +36,13 @@ public class MainActivity extends Activity {
 
         WebView web = new WebView(this);
         web.setBackgroundColor(Color.rgb(12,12,12));
+
         web.getSettings().setJavaScriptEnabled(true);
         web.getSettings().setDomStorageEnabled(true);
+
+        // فتح الروابط داخل التطبيق
+        web.setWebViewClient(new WebViewClient());
+
         web.loadUrl("https://marcorx6.blogspot.com");
 
         root.addView(web, new LinearLayout.LayoutParams(
